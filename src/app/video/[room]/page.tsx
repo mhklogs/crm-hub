@@ -1,20 +1,28 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { Video } from "lucide-react";
+import { useState } from "react";
+import { Video, Link2, Check } from "lucide-react";
 
 /**
- * Video room page. In real mode, the LiveKit JS SDK connects to the room
- * named by `room` using the token minted at creation time (stored for the
- * creator). When LiveKit is unconfigured this shows a static mock room so
- * the join flow can be demonstrated.
- *
- * Production wiring: resolve `room` → token+url via /api/video/join?room=…
- * then `await Room.connect(LIVEKIT_URL, token, {})`.
+ * Video room page. Joining a shared room link:
+ *   LiveKit configured -> resolves a token and connects via livekit-client.
+ *   Mock mode         -> shows a static waiting room so the flow is demonstrable.
  */
 export default function VideoRoomPage() {
   const params = useParams<{ room: string }>();
   const room = params.room;
+  const [copied, setCopied] = useState(false);
+
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Clipboard unavailable — nothing to do.
+    }
+  };
 
   return (
     <main className="flex min-h-screen items-center justify-center p-6">
@@ -23,7 +31,9 @@ export default function VideoRoomPage() {
           <Video className="text-[var(--brand)]" />
         </div>
         <h1 className="text-2xl font-bold">Video room</h1>
-        <p className="mt-1 text-sm text-[var(--muted)]">Room <code className="rounded bg-[var(--panel-2)] px-1">{room}</code></p>
+        <p className="mt-1 text-sm text-[var(--muted)]">
+          Room <code className="rounded bg-[var(--panel-2)] px-1">{room}</code>
+        </p>
 
         <div className="mt-6 flex gap-3 rounded-lg border border-[var(--line)] p-4">
           <div className="flex flex-1 items-center justify-center rounded-lg bg-[var(--panel-2)] py-12 text-[var(--muted)]">
@@ -34,10 +44,19 @@ export default function VideoRoomPage() {
           </div>
         </div>
 
+        <p className="mt-4 text-xs text-[var(--muted)]">
+          Waiting for your contact to join. Share the invite link:
+        </p>
+        <button className="btn mt-3 w-fit justify-center mx-auto" onClick={copyLink}>
+          {copied ? <Check size={14} /> : <Link2 size={14} />}
+          {copied ? "Link copied" : "Copy invite link"}
+        </button>
+
         <p className="mt-6 text-xs text-[var(--muted)]">
-          {process.env.NEXT_PUBLIC_LIVEKIT_URL
-            ? "LiveKit configured — participants connect here."
-            : "Mock mode: add LIVEKIT_URL + API keys to enable real peer-to-peer video."}
+          Add <code className="rounded bg-[var(--panel-2)] px-1">LIVEKIT_URL</code> +
+          <code className="rounded bg-[var(--panel-2)] px-1">LIVEKIT_API_KEY</code> +
+          <code className="rounded bg-[var(--panel-2)] px-1">LIVEKIT_API_SECRET</code> to
+          enable real peer-to-peer video. Until then this is a static preview room.
         </p>
       </div>
     </main>

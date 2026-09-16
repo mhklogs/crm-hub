@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { createSession, isAuthConfigured } from "@/lib/session";
-import { run, get } from "@/lib/db";
 
 /**
  * POST /api/auth/login  { email, name }

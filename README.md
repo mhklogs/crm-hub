@@ -12,7 +12,7 @@ A customizable Microsoft-Teams-like workspace: **CRM + click-to-dial + SMS + vid
 | Click-to-dial / SMS (Twilio) | Mock (log only) | `TWILIO_*` keys |
 | Video rooms (LiveKit) | Mock join page | `LIVEKIT_*` keys |
 
-Everything runs in **mock mode** until credentials are added, so you can build/test 100% locally first.
+Everything runs in **mock mode** until credentials are added, so you can build/test 100% locally first. The app tells you exactly what's simulated: every screen shows a `Mock mode` banner listing which integrations are live vs. simulated, and each call/SMS/Teams/video action confirms how it was routed.
 
 ## Run it
 
@@ -24,6 +24,14 @@ npm run dev        # → http://localhost:3000
 
 Open the app → use **Dev login** (any email) → add a contact → Call / Teams / SMS / Video room.
 Each action is written to that contact's timeline.
+
+## Checks
+
+```bash
+npm run lint       # ESLint
+npm run typecheck  # tsc --noEmit
+npm run build      # production build
+```
 
 ## Enabling the real integrations
 
@@ -46,6 +54,14 @@ Requires a **Microsoft 365 Business/Enterprise** tenant (personal accounts don't
 1. `cloud.livekit.io` → create a project.
 2. Set `LIVEKIT_URL`, `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET`.
 3. Wire the room page (`src/app/video/[room]/page.tsx`) to `livekit-client` in the browser.
+
+## How it's built
+
+- **Stack:** Next.js (App Router) · TypeScript · Tailwind (v4) · React 19
+- **Data:** Node's built-in `node:sqlite` driver — zero native deps, swap layer in `src/lib/db/index.ts`
+- **API shape:** `GET /api/config` reports integration readiness (booleans only, no secrets) → drives the `Mock mode` banner
+- **Sessions:** dev cookie auth + real Entra OAuth path (see `src/lib/session.ts`)
+- **Layout:** responsive shell — persistent rail on desktop, top bar on mobile
 
 ## Production notes
 - Replace the SQLite helpers in `src/lib/db/index.ts` with Supabase/Postgres — the rest of the app only imports `get/all/run`.

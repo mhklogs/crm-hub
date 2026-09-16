@@ -11,17 +11,21 @@ type Activity = { id: number; kind: string; summary: string; detail: string; cre
 type Contact = { id: number; name: string; company: string | null };
 
 export default function DashboardPage() {
-  const { toast, node } = useToast();
+  const { node } = useToast();
   const [deals, setDeals] = useState<Deal[]>([]);
   const [activity, setActivity] = useState<Activity[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
-  const [presence, setPresence] = useState("…");
+  const [presence, setPresence] = useState<string>("…");
+  const [presenceProvider, setPresenceProvider] = useState<string>("");
 
   const load = () => {
     fetch("/api/deals").then((r) => r.json()).then((d) => setDeals(d.deals ?? [])).catch(() => {});
     fetch("/api/activities").then((r) => r.json()).then((d) => setActivity(d.activities ?? [])).catch(() => {});
     fetch("/api/contacts").then((r) => r.json()).then((d) => setContacts(d.contacts ?? [])).catch(() => {});
-    fetch("/api/teams/presence").then((r) => r.json()).then((d) => setPresence(d.availability ?? d.provider)).catch(() => {});
+    fetch("/api/teams/presence").then((r) => r.json()).then((d) => {
+      setPresence(d.availability ?? d.provider ?? "…");
+      setPresenceProvider(d.provider ?? "");
+    }).catch(() => {});
   };
 
   useEffect(load, []);
@@ -40,7 +44,9 @@ export default function DashboardPage() {
       <header className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold">Dashboard</h1>
-          <p className="text-sm text-[var(--muted)]">Teams presence: {presence}</p>
+          <p className="text-sm text-[var(--muted)]">
+            Teams presence: {presence}{presenceProvider === "mock" ? " · mock" : ""}
+          </p>
         </div>
         <Link href="/contacts" className="btn btn-primary">
           <Phone size={14} /> New call / contact

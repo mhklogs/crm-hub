@@ -38,7 +38,6 @@ export default function ContactsPage() {
         if (still) setSelected(still);
       }
     });
-    fetch("/api/deals").then((r) => r.json()).then(() => {}).catch(() => {});
   }, [selected]);
 
   useEffect(reload, [reload]);
@@ -60,7 +59,13 @@ export default function ContactsPage() {
       });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error ?? "Request failed");
-      toast("Done");
+      if (d.provider === "mock") {
+        toast("Done — simulated in mock mode (add API keys to go live)");
+      } else if (d.provider) {
+        toast(`Done — via ${d.provider}`);
+      } else {
+        toast("Done");
+      }
       setShowPanel(null);
       setText("");
       setSmsText("");
